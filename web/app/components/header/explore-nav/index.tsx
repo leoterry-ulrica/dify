@@ -17,20 +17,22 @@ const ExploreNav = ({
 }: ExploreNavProps) => {
   const { t } = useTranslation()
   const selectedSegment = useSelectedLayoutSegment()
-  const actived = selectedSegment === 'explore'
+  const activated = selectedSegment === 'explore'
 
   return (
     <Link href="/explore/apps" className={classNames(
       className, 'group',
-      actived && 'bg-components-main-nav-nav-button-bg-active shadow-md',
-      actived ? 'text-components-main-nav-nav-button-text-active' : 'text-components-main-nav-nav-button-text hover:bg-components-main-nav-nav-button-bg-hover',
+      activated && 'bg-components-main-nav-nav-button-bg-active shadow-md',
+      activated ? 'text-components-main-nav-nav-button-text-active' : 'text-components-main-nav-nav-button-text hover:bg-components-main-nav-nav-button-bg-hover',
     )}>
       {
-        actived
-          ? <RiPlanetFill className='mr-2 w-4 h-4' />
-          : <RiPlanetLine className='mr-2 w-4 h-4' />
+        activated
+          ? <RiPlanetFill className='h-4 w-4' />
+          : <RiPlanetLine className='h-4 w-4' />
       }
-      {t('common.menus.explore')}
+      <div className='ml-2 max-[1024px]:hidden'>
+        {t('common.menus.explore')}
+      </div>
     </Link>
   )
 }

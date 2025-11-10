@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict
 
 from models.dataset import Document
@@ -10,21 +8,23 @@ class NotionInfo(BaseModel):
     """
     Notion import info.
     """
+
+    credential_id: str | None = None
     notion_workspace_id: str
     notion_obj_id: str
     notion_page_type: str
-    document: Document = None
+    document: Document | None = None
     tenant_id: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    def __init__(self, **data) -> None:
-        super().__init__(**data)
 
 
 class WebsiteInfo(BaseModel):
     """
     website import info.
     """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     provider: str
     job_id: str
     url: str
@@ -32,23 +32,15 @@ class WebsiteInfo(BaseModel):
     tenant_id: str
     only_main_content: bool = False
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, **data) -> None:
-        super().__init__(**data)
-
 
 class ExtractSetting(BaseModel):
     """
     Model class for provider response.
     """
-    datasource_type: str
-    upload_file: Optional[UploadFile] = None
-    notion_info: Optional[NotionInfo] = None
-    website_info: Optional[WebsiteInfo] = None
-    document_model: Optional[str] = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, **data) -> None:
-        super().__init__(**data)
+    datasource_type: str
+    upload_file: UploadFile | None = None
+    notion_info: NotionInfo | None = None
+    website_info: WebsiteInfo | None = None
+    document_model: str | None = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)

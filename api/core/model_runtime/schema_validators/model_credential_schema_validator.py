@@ -4,12 +4,11 @@ from core.model_runtime.schema_validators.common_validator import CommonValidato
 
 
 class ModelCredentialSchemaValidator(CommonValidator):
-
     def __init__(self, model_type: ModelType, model_credential_schema: ModelCredentialSchema):
         self.model_type = model_type
         self.model_credential_schema = model_credential_schema
 
-    def validate_and_filter(self, credentials: dict) -> dict:
+    def validate_and_filter(self, credentials: dict):
         """
         Validate model credentials
 

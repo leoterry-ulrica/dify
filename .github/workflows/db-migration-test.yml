@@ -1,11 +1,7 @@
 name: DB Migration Test
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - api/migrations/**
+  workflow_call:
 
 concurrency:
   group: db-migration-test-${{ github.ref }}
@@ -14,29 +10,29 @@ concurrency:
 jobs:
   db-migration-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version:
-          - "3.10"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v3
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
-          cache-dependency-path: |
-            api/pyproject.toml
-            api/poetry.lock
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup UV and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+          cache-dependency-glob: api/uv.lock
 
       - name: Install dependencies
-        run: poetry install -C api
+        run: uv sync --project api
+      - name: Ensure Offline migration are supported
+        run: |
+          # upgrade
+          uv run --directory api flask db upgrade 'base:head' --sql
+          # downgrade
+          uv run --directory api flask db downgrade 'head:base' --sql
 
       - name: Prepare middleware env
         run: |
@@ -44,7 +40,7 @@ jobs:
           cp middleware.env.example middleware.env
 
       - name: Set up Middlewares
-        uses: hoverkraft-tech/compose-action@v2.0.0
+        uses: hoverkraft-tech/compose-action@v2.0.2
         with:
           compose-file: |
             docker/docker-compose.middleware.yaml
@@ -58,6 +54,6 @@ jobs:
           cp .env.example .env
 
       - name: Run DB Migration
-        run: |
-          cd api
-          poetry run python -m flask upgrade-db
+        env:
+          DEBUG: true
+        run: uv run --directory api flask upgrade-db

@@ -1,7 +1,7 @@
 const translation = {
   title: 'Registros',
   description: 'Los registros registran el estado de ejecución de la aplicación, incluyendo las entradas de usuario y las respuestas de la IA.',
-  dateTimeFormat: 'MM/DD/YYYY hh:mm A',
+  dateTimeFormat: 'MM/DD/YYYY hh:mm:ss A',
   table: {
     header: {
       updatedTime: 'Hora actualizada',
@@ -52,6 +52,7 @@ const translation = {
     },
     variables: 'Variables',
     uploadImages: 'Imágenes Cargadas',
+    modelParams: 'Parámetros del modelo',
   },
   filter: {
     period: {
@@ -79,6 +80,9 @@ const translation = {
   runDetail: {
     title: 'Registro de Conversación',
     workflowTitle: 'Detalle del Registro',
+    fileListLabel: 'Detalles del archivo',
+    fileListDetail: 'Detalle',
+    testWithParams: 'Prueba con parámetros',
   },
   promptLog: 'Registro de Indicación',
   agentLog: 'Registro de Agente',
@@ -90,6 +94,7 @@ const translation = {
     iteration: 'Iteración',
     finalProcessing: 'Procesamiento Final',
   },
+  dateFormat: 'DD/MM/YYYY',
 }
 
 export default translation

@@ -2,7 +2,6 @@ const translation = {
   title: 'Testowanie odzyskiwania',
   desc: 'Przetestuj efekt uderzenia wiedzy na podstawie podanego tekstu zapytania.',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'Ostatnie',
   table: {
     header: {
       source: 'Źródło',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Brak ostatnich wyników zapytań tutaj',
   viewChart: 'Zobacz WYKRES WEKTOROWY',
+  settingTitle: 'Ustawienie pobierania',
+  viewDetail: 'Pokaż szczegóły',
+  keyword: 'Słowa kluczowe',
+  hitChunks: 'Trafienie w {{num}} fragmentów podrzędnych',
+  open: 'Otwierać',
+  records: 'Rekordy',
+  chunkDetail: 'Szczegóły kawałka',
 }
 
 export default translation

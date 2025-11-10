@@ -1,7 +1,8 @@
 const translation = {
   title: 'Protokolle',
   description: 'Die Protokolle zeichnen den Betriebsstatus der Anwendung auf, einschließlich Benutzereingaben und KI-Antworten.',
-  dateTimeFormat: 'MM/DD/YYYY hh:mm A',
+  dateTimeFormat: 'MM/DD/YYYY hh:mm:ss A',
+  dateFormat: 'MM/DD/YYYY',
   table: {
     header: {
       updatedTime: 'Aktualisierungszeit',
@@ -13,6 +14,12 @@ const translation = {
       messageCount: 'Nachrichtenzahl',
       userRate: 'Benutzerbewertung',
       adminRate: 'Op. Bewertung',
+      user: 'Endbenutzer oder Konto',
+      status: 'STATUS',
+      runtime: 'LAUFZEIT',
+      version: 'VERSION',
+      tokens: 'TOKEN',
+      startTime: 'STARTZEIT',
     },
     pagination: {
       previous: 'Vorherige',
@@ -46,6 +53,7 @@ const translation = {
     },
     variables: 'Variablen',
     uploadImages: 'Hochgeladene Bilder',
+    modelParams: 'Modellparameter',
   },
   filter: {
     period: {
@@ -73,6 +81,9 @@ const translation = {
   runDetail: {
     title: 'Konversationsprotokoll',
     workflowTitle: 'Protokolldetail',
+    fileListLabel: 'Details zur Datei',
+    fileListDetail: 'Detail',
+    testWithParams: 'Test mit Parametern',
   },
   promptLog: 'Prompt-Protokoll',
   agentLog: 'Agentenprotokoll',

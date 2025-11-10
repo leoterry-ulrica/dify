@@ -2,7 +2,6 @@ const translation = {
   title: 'آزمون بازیابی',
   desc: 'آزمون اثرگذاری دانش بر اساس متن پرسش داده شده.',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'اخیرها',
   table: {
     header: {
       source: 'منبع',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'اینجا نتیجه پرسش اخیر وجود ندارد',
   viewChart: 'مشاهده نمودار بُرداری',
+  settingTitle: 'تنظیمات بازیابی',
+  viewDetail: 'نمایش جزئیات',
+  records: 'سوابق',
+  keyword: 'کليدواژه',
+  hitChunks: '{{num}} را بزنید تکه های فرزند',
+  chunkDetail: 'جزئیات تکه',
+  open: 'باز',
 }
 
 export default translation

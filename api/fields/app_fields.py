@@ -1,7 +1,20 @@
-from flask_restful import fields
+import json
+
+from flask_restx import fields
 
 from fields.workflow_fields import workflow_partial_fields
 from libs.helper import AppIconUrlField, TimestampField
+
+
+class JsonStringField(fields.Raw):
+    def format(self, value):
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+        return value
+
 
 app_detail_kernel_fields = {
     "id": fields.String,
@@ -46,6 +59,8 @@ model_config_fields = {
     "updated_at": TimestampField,
 }
 
+tag_fields = {"id": fields.String, "name": fields.String, "type": fields.String}
+
 app_detail_fields = {
     "id": fields.String,
     "name": fields.String,
@@ -58,10 +73,13 @@ app_detail_fields = {
     "model_config": fields.Nested(model_config_fields, attribute="app_model_config", allow_null=True),
     "workflow": fields.Nested(workflow_partial_fields, allow_null=True),
     "tracing": fields.Raw,
+    "use_icon_as_answer_icon": fields.Boolean,
     "created_by": fields.String,
     "created_at": TimestampField,
     "updated_by": fields.String,
     "updated_at": TimestampField,
+    "access_mode": fields.String,
+    "tags": fields.List(fields.Nested(tag_fields)),
 }
 
 prompt_config_fields = {
@@ -77,8 +95,6 @@ model_config_partial_fields = {
     "updated_at": TimestampField,
 }
 
-tag_fields = {"id": fields.String, "name": fields.String, "type": fields.String}
-
 app_partial_fields = {
     "id": fields.String,
     "name": fields.String,
@@ -91,11 +107,15 @@ app_partial_fields = {
     "icon_url": AppIconUrlField,
     "model_config": fields.Nested(model_config_partial_fields, attribute="app_model_config", allow_null=True),
     "workflow": fields.Nested(workflow_partial_fields, allow_null=True),
+    "use_icon_as_answer_icon": fields.Boolean,
     "created_by": fields.String,
     "created_at": TimestampField,
     "updated_by": fields.String,
     "updated_at": TimestampField,
     "tags": fields.List(fields.Nested(tag_fields)),
+    "access_mode": fields.String,
+    "create_user_name": fields.String,
+    "author_name": fields.String,
 }
 
 
@@ -140,10 +160,17 @@ site_fields = {
     "prompt_public": fields.Boolean,
     "app_base_url": fields.String,
     "show_workflow_steps": fields.Boolean,
+    "use_icon_as_answer_icon": fields.Boolean,
     "created_by": fields.String,
     "created_at": TimestampField,
     "updated_by": fields.String,
     "updated_at": TimestampField,
+}
+
+deleted_tool_fields = {
+    "type": fields.String,
+    "tool_name": fields.String,
+    "provider_id": fields.String,
 }
 
 app_detail_fields_with_site = {
@@ -159,14 +186,19 @@ app_detail_fields_with_site = {
     "enable_api": fields.Boolean,
     "model_config": fields.Nested(model_config_fields, attribute="app_model_config", allow_null=True),
     "workflow": fields.Nested(workflow_partial_fields, allow_null=True),
-    "site": fields.Nested(site_fields),
     "api_base_url": fields.String,
+    "use_icon_as_answer_icon": fields.Boolean,
+    "max_active_requests": fields.Integer,
     "created_by": fields.String,
     "created_at": TimestampField,
     "updated_by": fields.String,
     "updated_at": TimestampField,
-    "deleted_tools": fields.List(fields.String),
+    "deleted_tools": fields.List(fields.Nested(deleted_tool_fields)),
+    "access_mode": fields.String,
+    "tags": fields.List(fields.Nested(tag_fields)),
+    "site": fields.Nested(site_fields),
 }
+
 
 app_site_fields = {
     "app_id": fields.String,
@@ -184,4 +216,32 @@ app_site_fields = {
     "customize_token_strategy": fields.String,
     "prompt_public": fields.Boolean,
     "show_workflow_steps": fields.Boolean,
+    "use_icon_as_answer_icon": fields.Boolean,
+}
+
+leaked_dependency_fields = {"type": fields.String, "value": fields.Raw, "current_identifier": fields.String}
+
+app_import_fields = {
+    "id": fields.String,
+    "status": fields.String,
+    "app_id": fields.String,
+    "app_mode": fields.String,
+    "current_dsl_version": fields.String,
+    "imported_dsl_version": fields.String,
+    "error": fields.String,
+}
+
+app_import_check_dependencies_fields = {
+    "leaked_dependencies": fields.List(fields.Nested(leaked_dependency_fields)),
+}
+
+app_server_fields = {
+    "id": fields.String,
+    "name": fields.String,
+    "server_code": fields.String,
+    "description": fields.String,
+    "status": fields.String,
+    "parameters": JsonStringField,
+    "created_at": TimestampField,
+    "updated_at": TimestampField,
 }

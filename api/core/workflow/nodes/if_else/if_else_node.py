@@ -1,48 +1,73 @@
-from collections.abc import Sequence
-from typing import Optional, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal
 
-from core.workflow.entities.base_node_data_entities import BaseNodeData
-from core.workflow.entities.node_entities import NodeRunResult, NodeType
-from core.workflow.entities.variable_pool import VariablePool
-from core.workflow.nodes.base_node import BaseNode
-from core.workflow.nodes.if_else.entities import Condition, IfElseNodeData
-from core.workflow.utils.variable_template_parser import VariableTemplateParser
-from models.workflow import WorkflowNodeExecutionStatus
+from typing_extensions import deprecated
+
+from core.workflow.enums import ErrorStrategy, NodeExecutionType, NodeType, WorkflowNodeExecutionStatus
+from core.workflow.node_events import NodeRunResult
+from core.workflow.nodes.base.entities import BaseNodeData, RetryConfig
+from core.workflow.nodes.base.node import Node
+from core.workflow.nodes.if_else.entities import IfElseNodeData
+from core.workflow.runtime import VariablePool
+from core.workflow.utils.condition.entities import Condition
+from core.workflow.utils.condition.processor import ConditionProcessor
 
 
-class IfElseNode(BaseNode):
-    _node_data_cls = IfElseNodeData
-    _node_type = NodeType.IF_ELSE
+class IfElseNode(Node):
+    node_type = NodeType.IF_ELSE
+    execution_type = NodeExecutionType.BRANCH
 
-    def _run(self, variable_pool: VariablePool) -> NodeRunResult:
+    _node_data: IfElseNodeData
+
+    def init_node_data(self, data: Mapping[str, Any]):
+        self._node_data = IfElseNodeData.model_validate(data)
+
+    def _get_error_strategy(self) -> ErrorStrategy | None:
+        return self._node_data.error_strategy
+
+    def _get_retry_config(self) -> RetryConfig:
+        return self._node_data.retry_config
+
+    def _get_title(self) -> str:
+        return self._node_data.title
+
+    def _get_description(self) -> str | None:
+        return self._node_data.desc
+
+    def _get_default_value_dict(self) -> dict[str, Any]:
+        return self._node_data.default_value_dict
+
+    def get_base_node_data(self) -> BaseNodeData:
+        return self._node_data
+
+    @classmethod
+    def version(cls) -> str:
+        return "1"
+
+    def _run(self) -> NodeRunResult:
         """
         Run node
-        :param variable_pool: variable pool
         :return:
         """
-        node_data = self.node_data
-        node_data = cast(IfElseNodeData, node_data)
+        node_inputs: dict[str, Sequence[Mapping[str, Any]]] = {"conditions": []}
 
-        node_inputs = {
-            "conditions": []
-        }
+        process_data: dict[str, list] = {"condition_results": []}
 
-        process_datas = {
-            "condition_results": []
-        }
-
-        input_conditions = []
+        input_conditions: Sequence[Mapping[str, Any]] = []
         final_result = False
-        selected_case_id = None
+        selected_case_id = "false"
+        condition_processor = ConditionProcessor()
         try:
             # Check if the new cases structure is used
-            if node_data.cases:
-                for case in node_data.cases:
-                    input_conditions, group_result = self.process_conditions(variable_pool, case.conditions)
-                    # Apply the logical operator for the current case
-                    final_result = all(group_result) if case.logical_operator == "and" else any(group_result)
+            if self._node_data.cases:
+                for case in self._node_data.cases:
+                    input_conditions, group_result, final_result = condition_processor.process_conditions(
+                        variable_pool=self.graph_runtime_state.variable_pool,
+                        conditions=case.conditions,
+                        operator=case.logical_operator,
+                    )
 
-                    process_datas["condition_results"].append(
+                    process_data["condition_results"].append(
                         {
                             "group": case.model_dump(),
                             "results": group_result,
@@ -56,29 +81,26 @@ class IfElseNode(BaseNode):
                         break
 
             else:
+                # TODO: Update database then remove this
                 # Fallback to old structure if cases are not defined
-                input_conditions, group_result = self.process_conditions(variable_pool, node_data.conditions)
-
-                final_result = all(group_result) if node_data.logical_operator == "and" else any(group_result)
+                input_conditions, group_result, final_result = _should_not_use_old_function(  # pyright: ignore [reportDeprecated]
+                    condition_processor=condition_processor,
+                    variable_pool=self.graph_runtime_state.variable_pool,
+                    conditions=self._node_data.conditions or [],
+                    operator=self._node_data.logical_operator or "and",
+                )
 
                 selected_case_id = "true" if final_result else "false"
 
-                process_datas["condition_results"].append(
-                    {
-                        "group": "default",
-                        "results": group_result,
-                        "final_result": final_result
-                    }
+                process_data["condition_results"].append(
+                    {"group": "default", "results": group_result, "final_result": final_result}
                 )
 
             node_inputs["conditions"] = input_conditions
 
         except Exception as e:
             return NodeRunResult(
-                status=WorkflowNodeExecutionStatus.FAILED,
-                inputs=node_inputs,
-                process_data=process_datas,
-                error=str(e)
+                status=WorkflowNodeExecutionStatus.FAILED, inputs=node_inputs, process_data=process_data, error=str(e)
             )
 
         outputs = {"result": final_result, "selected_case_id": selected_case_id}
@@ -86,372 +108,43 @@ class IfElseNode(BaseNode):
         data = NodeRunResult(
             status=WorkflowNodeExecutionStatus.SUCCEEDED,
             inputs=node_inputs,
-            process_data=process_datas,
-            edge_source_handle=selected_case_id if selected_case_id else "false",  # Use case ID or 'default'
-            outputs=outputs
+            process_data=process_data,
+            edge_source_handle=selected_case_id or "false",  # Use case ID or 'default'
+            outputs=outputs,
         )
 
         return data
 
-    def evaluate_condition(
-        self, actual_value: Optional[str | list], expected_value: str, comparison_operator: str
-    ) -> bool:
-        """
-        Evaluate condition
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :param comparison_operator: comparison operator
-
-        :return: bool
-        """
-        if comparison_operator == "contains":
-            return self._assert_contains(actual_value, expected_value)
-        elif comparison_operator == "not contains":
-            return self._assert_not_contains(actual_value, expected_value)
-        elif comparison_operator == "start with":
-            return self._assert_start_with(actual_value, expected_value)
-        elif comparison_operator == "end with":
-            return self._assert_end_with(actual_value, expected_value)
-        elif comparison_operator == "is":
-            return self._assert_is(actual_value, expected_value)
-        elif comparison_operator == "is not":
-            return self._assert_is_not(actual_value, expected_value)
-        elif comparison_operator == "empty":
-            return self._assert_empty(actual_value)
-        elif comparison_operator == "not empty":
-            return self._assert_not_empty(actual_value)
-        elif comparison_operator == "=":
-            return self._assert_equal(actual_value, expected_value)
-        elif comparison_operator == "≠":
-            return self._assert_not_equal(actual_value, expected_value)
-        elif comparison_operator == ">":
-            return self._assert_greater_than(actual_value, expected_value)
-        elif comparison_operator == "<":
-            return self._assert_less_than(actual_value, expected_value)
-        elif comparison_operator == "≥":
-            return self._assert_greater_than_or_equal(actual_value, expected_value)
-        elif comparison_operator == "≤":
-            return self._assert_less_than_or_equal(actual_value, expected_value)
-        elif comparison_operator == "null":
-            return self._assert_null(actual_value)
-        elif comparison_operator == "not null":
-            return self._assert_not_null(actual_value)
-        else:
-            raise ValueError(f"Invalid comparison operator: {comparison_operator}")
-
-    def process_conditions(self, variable_pool: VariablePool, conditions: Sequence[Condition]):
-        input_conditions = []
-        group_result = []
-
-        for condition in conditions:
-            actual_variable = variable_pool.get_any(condition.variable_selector)
-
-            if condition.value is not None:
-                variable_template_parser = VariableTemplateParser(template=condition.value)
-                expected_value = variable_template_parser.extract_variable_selectors()
-                variable_selectors = variable_template_parser.extract_variable_selectors()
-                if variable_selectors:
-                    for variable_selector in variable_selectors:
-                        value = variable_pool.get_any(variable_selector.value_selector)
-                        expected_value = variable_template_parser.format({variable_selector.variable: value})
-                else:
-                    expected_value = condition.value
-            else:
-                expected_value = None
-
-            comparison_operator = condition.comparison_operator
-            input_conditions.append(
-                {
-                    "actual_value": actual_variable,
-                    "expected_value": expected_value,
-                    "comparison_operator": comparison_operator
-                }
-            )
-
-            result = self.evaluate_condition(actual_variable, expected_value, comparison_operator)
-            group_result.append(result)
-
-        return input_conditions, group_result
-
-    def _assert_contains(self, actual_value: Optional[str | list], expected_value: str) -> bool:
-        """
-        Assert contains
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if not actual_value:
-            return False
-
-        if not isinstance(actual_value, str | list):
-            raise ValueError('Invalid actual value type: string or array')
-
-        if expected_value not in actual_value:
-            return False
-        return True
-
-    def _assert_not_contains(self, actual_value: Optional[str | list], expected_value: str) -> bool:
-        """
-        Assert not contains
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if not actual_value:
-            return True
-
-        if not isinstance(actual_value, str | list):
-            raise ValueError('Invalid actual value type: string or array')
-
-        if expected_value in actual_value:
-            return False
-        return True
-
-    def _assert_start_with(self, actual_value: Optional[str], expected_value: str) -> bool:
-        """
-        Assert start with
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if not actual_value:
-            return False
-
-        if not isinstance(actual_value, str):
-            raise ValueError('Invalid actual value type: string')
-
-        if not actual_value.startswith(expected_value):
-            return False
-        return True
-
-    def _assert_end_with(self, actual_value: Optional[str], expected_value: str) -> bool:
-        """
-        Assert end with
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if not actual_value:
-            return False
-
-        if not isinstance(actual_value, str):
-            raise ValueError('Invalid actual value type: string')
-
-        if not actual_value.endswith(expected_value):
-            return False
-        return True
-
-    def _assert_is(self, actual_value: Optional[str], expected_value: str) -> bool:
-        """
-        Assert is
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, str):
-            raise ValueError('Invalid actual value type: string')
-
-        if actual_value != expected_value:
-            return False
-        return True
-
-    def _assert_is_not(self, actual_value: Optional[str], expected_value: str) -> bool:
-        """
-        Assert is not
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, str):
-            raise ValueError('Invalid actual value type: string')
-
-        if actual_value == expected_value:
-            return False
-        return True
-
-    def _assert_empty(self, actual_value: Optional[str]) -> bool:
-        """
-        Assert empty
-        :param actual_value: actual value
-        :return:
-        """
-        if not actual_value:
-            return True
-        return False
-
-    def _assert_not_empty(self, actual_value: Optional[str]) -> bool:
-        """
-        Assert not empty
-        :param actual_value: actual value
-        :return:
-        """
-        if actual_value:
-            return True
-        return False
-
-    def _assert_equal(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert equal
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value != expected_value:
-            return False
-        return True
-
-    def _assert_not_equal(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert not equal
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value == expected_value:
-            return False
-        return True
-
-    def _assert_greater_than(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert greater than
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value <= expected_value:
-            return False
-        return True
-
-    def _assert_less_than(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert less than
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value >= expected_value:
-            return False
-        return True
-
-    def _assert_greater_than_or_equal(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert greater than or equal
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value < expected_value:
-            return False
-        return True
-
-    def _assert_less_than_or_equal(self, actual_value: Optional[int | float], expected_value: str) -> bool:
-        """
-        Assert less than or equal
-        :param actual_value: actual value
-        :param expected_value: expected value
-        :return:
-        """
-        if actual_value is None:
-            return False
-
-        if not isinstance(actual_value, int | float):
-            raise ValueError('Invalid actual value type: number')
-
-        if isinstance(actual_value, int):
-            expected_value = int(expected_value)
-        else:
-            expected_value = float(expected_value)
-
-        if actual_value > expected_value:
-            return False
-        return True
-
-    def _assert_null(self, actual_value: Optional[int | float]) -> bool:
-        """
-        Assert null
-        :param actual_value: actual value
-        :return:
-        """
-        if actual_value is None:
-            return True
-        return False
-
-    def _assert_not_null(self, actual_value: Optional[int | float]) -> bool:
-        """
-        Assert not null
-        :param actual_value: actual value
-        :return:
-        """
-        if actual_value is not None:
-            return True
-        return False
-
     @classmethod
-    def _extract_variable_selector_to_variable_mapping(cls, node_data: BaseNodeData) -> dict[str, list[str]]:
-        """
-        Extract variable selector to variable mapping
-        :param node_data: node data
-        :return:
-        """
-        return {}
+    def _extract_variable_selector_to_variable_mapping(
+        cls,
+        *,
+        graph_config: Mapping[str, Any],
+        node_id: str,
+        node_data: Mapping[str, Any],
+    ) -> Mapping[str, Sequence[str]]:
+        # Create typed NodeData from dict
+        typed_node_data = IfElseNodeData.model_validate(node_data)
+
+        var_mapping: dict[str, list[str]] = {}
+        for case in typed_node_data.cases or []:
+            for condition in case.conditions:
+                key = f"{node_id}.#{'.'.join(condition.variable_selector)}#"
+                var_mapping[key] = condition.variable_selector
+
+        return var_mapping
+
+
+@deprecated("This function is deprecated. You should use the new cases structure.")
+def _should_not_use_old_function(
+    *,
+    condition_processor: ConditionProcessor,
+    variable_pool: VariablePool,
+    conditions: list[Condition],
+    operator: Literal["and", "or"],
+):
+    return condition_processor.process_conditions(
+        variable_pool=variable_pool,
+        conditions=conditions,
+        operator=operator,
+    )

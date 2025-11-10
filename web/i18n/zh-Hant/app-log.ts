@@ -1,7 +1,7 @@
 const translation = {
   title: '日誌',
   description: '日誌記錄了應用的執行情況，包括使用者的輸入和 AI 的回覆。',
-  dateTimeFormat: 'YYYY-MM-DD HH:mm',
+  dateTimeFormat: 'YYYY-MM-DD HH:mm:ss',
   table: {
     header: {
       updatedTime: '更新時間',
@@ -29,7 +29,7 @@ const translation = {
       noOutput: '無輸出',
       element: {
         title: '這裡有人嗎',
-        content: '在這裡觀測和標註終端使用者和 AI 應用程式之間的互動，以不斷提高 AI 的準確性。您可以<testLink>試試</testLink> WebApp 或<shareLink>分享</shareLink>出去，然後返回此頁面。',
+        content: '在這裡觀測和標註終端使用者和 AI 應用程式之間的互動，以不斷提高 AI 的準確性。您可以嘗試<shareLink>分享</shareLink>或<testLink>測試</testLink>此Web應用程序，然後返回此頁面。',
       },
     },
   },
@@ -48,10 +48,11 @@ const translation = {
       dislike: '反對',
       addAnnotation: '標記改進回覆',
       editAnnotation: '編輯改進回覆',
-      annotationPlaceholder: '輸入你希望 AI 回覆的預期答案，這在今後可用於模型微調，持續改進文字生成質量。',
+      annotationPlaceholder: '輸入你希望 AI 回覆的預期答案，這在今後可用於模型微調，持續改進文字生成品質。',
     },
     variables: '變數',
     uploadImages: '上傳的圖片',
+    modelParams: '模型參數',
   },
   filter: {
     period: {
@@ -70,7 +71,7 @@ const translation = {
       annotated: '已標註改進（{{count}} 項）',
       not_annotated: '未標註',
     },
-    sortBy: '排序方式：',
+    sortBy: '排序：',
     descending: '降序',
     ascending: '升序',
   },
@@ -79,6 +80,9 @@ const translation = {
   runDetail: {
     title: '對話日誌',
     workflowTitle: '日誌詳情',
+    fileListDetail: '細節',
+    fileListLabel: '檔詳細資訊',
+    testWithParams: '使用參數測試',
   },
   promptLog: 'Prompt 日誌',
   agentLog: 'Agent 日誌',
@@ -90,6 +94,7 @@ const translation = {
     iteration: '迭代',
     finalProcessing: '最終處理',
   },
+  dateFormat: '月/日/年',
 }
 
 export default translation

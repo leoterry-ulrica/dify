@@ -1,8 +1,21 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
+
+
+class ChildDocument(BaseModel):
+    """Class for storing a piece of text and associated metadata."""
+
+    page_content: str
+
+    vector: list[float] | None = None
+
+    """Arbitrary metadata about the page content (e.g., source, relationships to other
+        documents, etc.).
+    """
+    metadata: dict = Field(default_factory=dict)
 
 
 class Document(BaseModel):
@@ -10,12 +23,59 @@ class Document(BaseModel):
 
     page_content: str
 
-    vector: Optional[list[float]] = None
+    vector: list[float] | None = None
 
     """Arbitrary metadata about the page content (e.g., source, relationships to other
         documents, etc.).
     """
-    metadata: Optional[dict] = Field(default_factory=dict)
+    metadata: dict = Field(default_factory=dict)
+
+    provider: str | None = "dify"
+
+    children: list[ChildDocument] | None = None
+
+
+class GeneralStructureChunk(BaseModel):
+    """
+    General Structure Chunk.
+    """
+
+    general_chunks: list[str]
+
+
+class ParentChildChunk(BaseModel):
+    """
+    Parent Child Chunk.
+    """
+
+    parent_content: str
+    child_contents: list[str]
+
+
+class ParentChildStructureChunk(BaseModel):
+    """
+    Parent Child Structure Chunk.
+    """
+
+    parent_child_chunks: list[ParentChildChunk]
+    parent_mode: str = "paragraph"
+
+
+class QAChunk(BaseModel):
+    """
+    QA Chunk.
+    """
+
+    question: str
+    answer: str
+
+
+class QAStructureChunk(BaseModel):
+    """
+    QAStructureChunk.
+    """
+
+    qa_chunks: list[QAChunk]
 
 
 class BaseDocumentTransformer(ABC):
@@ -28,12 +88,11 @@ class BaseDocumentTransformer(ABC):
         .. code-block:: python
 
             class EmbeddingsRedundantFilter(BaseDocumentTransformer, BaseModel):
+                model_config = ConfigDict(arbitrary_types_allowed=True)
+
                 embeddings: Embeddings
                 similarity_fn: Callable = cosine_similarity
                 similarity_threshold: float = 0.95
-
-                class Config:
-                    arbitrary_types_allowed = True
 
                 def transform_documents(
                     self, documents: Sequence[Document], **kwargs: Any
@@ -55,9 +114,7 @@ class BaseDocumentTransformer(ABC):
     """
 
     @abstractmethod
-    def transform_documents(
-        self, documents: Sequence[Document], **kwargs: Any
-    ) -> Sequence[Document]:
+    def transform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
         """Transform a list of documents.
 
         Args:
@@ -68,9 +125,7 @@ class BaseDocumentTransformer(ABC):
         """
 
     @abstractmethod
-    async def atransform_documents(
-        self, documents: Sequence[Document], **kwargs: Any
-    ) -> Sequence[Document]:
+    async def atransform_documents(self, documents: Sequence[Document], **kwargs: Any) -> Sequence[Document]:
         """Asynchronously transform a list of documents.
 
         Args:

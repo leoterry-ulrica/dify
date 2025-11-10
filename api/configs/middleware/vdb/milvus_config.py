@@ -1,40 +1,44 @@
-from typing import Optional
-
-from pydantic import Field, PositiveInt
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
 class MilvusConfig(BaseSettings):
     """
-    Milvus configs
+    Configuration settings for Milvus vector database
     """
 
-    MILVUS_HOST: Optional[str] = Field(
-        description="Milvus host",
+    MILVUS_URI: str | None = Field(
+        description="URI for connecting to the Milvus server (e.g., 'http://localhost:19530' or 'https://milvus-instance.example.com:19530')",
+        default="http://127.0.0.1:19530",
+    )
+
+    MILVUS_TOKEN: str | None = Field(
+        description="Authentication token for Milvus, if token-based authentication is enabled",
         default=None,
     )
 
-    MILVUS_PORT: PositiveInt = Field(
-        description="Milvus RestFul API port",
-        default=9091,
-    )
-
-    MILVUS_USER: Optional[str] = Field(
-        description="Milvus user",
+    MILVUS_USER: str | None = Field(
+        description="Username for authenticating with Milvus, if username/password authentication is enabled",
         default=None,
     )
 
-    MILVUS_PASSWORD: Optional[str] = Field(
-        description="Milvus password",
+    MILVUS_PASSWORD: str | None = Field(
+        description="Password for authenticating with Milvus, if username/password authentication is enabled",
         default=None,
-    )
-
-    MILVUS_SECURE: bool = Field(
-        description="whether to use SSL connection for Milvus",
-        default=False,
     )
 
     MILVUS_DATABASE: str = Field(
-        description="Milvus database, default to `default`",
+        description="Name of the Milvus database to connect to (default is 'default')",
         default="default",
+    )
+
+    MILVUS_ENABLE_HYBRID_SEARCH: bool = Field(
+        description="Enable hybrid search features (requires Milvus >= 2.5.0). Set to false for compatibility with "
+        "older versions",
+        default=True,
+    )
+
+    MILVUS_ANALYZER_PARAMS: str | None = Field(
+        description='Milvus text analyzer parameters, e.g., {"type": "chinese"} for Chinese segmentation support.',
+        default=None,
     )

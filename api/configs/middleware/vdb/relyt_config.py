@@ -1,35 +1,33 @@
-from typing import Optional
-
 from pydantic import Field, PositiveInt
 from pydantic_settings import BaseSettings
 
 
 class RelytConfig(BaseSettings):
     """
-    Relyt configs
+    Configuration settings for Relyt database
     """
 
-    RELYT_HOST: Optional[str] = Field(
-        description="Relyt host",
+    RELYT_HOST: str | None = Field(
+        description="Hostname or IP address of the Relyt server (e.g., 'localhost' or 'relyt.example.com')",
         default=None,
     )
 
     RELYT_PORT: PositiveInt = Field(
-        description="Relyt port",
+        description="Port number on which the Relyt server is listening (default is 9200)",
         default=9200,
     )
 
-    RELYT_USER: Optional[str] = Field(
-        description="Relyt user",
+    RELYT_USER: str | None = Field(
+        description="Username for authenticating with the Relyt database",
         default=None,
     )
 
-    RELYT_PASSWORD: Optional[str] = Field(
-        description="Relyt password",
+    RELYT_PASSWORD: str | None = Field(
+        description="Password for authenticating with the Relyt database",
         default=None,
     )
 
-    RELYT_DATABASE: Optional[str] = Field(
-        description="Relyt database",
+    RELYT_DATABASE: str | None = Field(
+        description="Name of the Relyt database to connect to (default is 'default')",
         default="default",
     )

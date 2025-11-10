@@ -2,7 +2,6 @@ const translation = {
   title: 'Geri Alım Testi',
   desc: 'Verilen sorgu metnine göre Bilginin isabet etkisini test edin.',
   dateTimeFormat: 'GG/AA/YYYY ss:dd ÖÖ/ÖS',
-  recents: 'Sonuçlar',
   table: {
     header: {
       source: 'Kaynak',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Burada son sorgu sonuçları yok',
   viewChart: 'VEKTÖR GRAFİĞİNİ GÖRÜNTÜLE',
+  viewDetail: 'ayrıntılara bakın',
+  settingTitle: 'Alma Ayarı',
+  open: 'Açık',
+  chunkDetail: 'Yığın Detayı',
+  keyword: 'Anahtar kelime -ler',
+  hitChunks: '{{num}} alt parçalarına basın',
+  records: 'Kayıt',
 }
 
 export default translation

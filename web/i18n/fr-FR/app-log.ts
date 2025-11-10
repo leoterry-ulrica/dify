@@ -1,7 +1,7 @@
 const translation = {
   title: 'Journaux',
   description: 'Les journaux enregistrent l\'état d\'exécution de l\'application, y compris les entrées utilisateur et les réponses de l\'IA.',
-  dateTimeFormat: 'MM/DD/YYYY hh:mm A',
+  dateTimeFormat: 'MM/DD/YYYY hh:mm:ss A',
   table: {
     header: {
       updatedTime: 'Heure de mise à jour',
@@ -52,6 +52,7 @@ const translation = {
     },
     variables: 'Variables',
     uploadImages: 'Images téléchargées',
+    modelParams: 'Paramètres du modèle',
   },
   filter: {
     period: {
@@ -79,6 +80,9 @@ const translation = {
   runDetail: {
     title: 'Journal de conversation',
     workflowTitle: 'Détail du journal',
+    fileListDetail: 'Détail',
+    fileListLabel: 'Détails du fichier',
+    testWithParams: 'Test avec paramètres',
   },
   promptLog: 'Journal de consigne',
   agentLog: 'Journal des agents',
@@ -90,6 +94,7 @@ const translation = {
     iteration: 'Itération',
     finalProcessing: 'Traitement final',
   },
+  dateFormat: 'JJ/MM/YYYY',
 }
 
 export default translation

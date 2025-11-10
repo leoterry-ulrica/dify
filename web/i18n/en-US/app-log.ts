@@ -1,7 +1,8 @@
 const translation = {
   title: 'Logs',
   description: 'The logs record the running status of the application, including user inputs and AI replies.',
-  dateTimeFormat: 'MM/DD/YYYY hh:mm A',
+  dateTimeFormat: 'MM/DD/YYYY hh:mm:ss A',
+  dateFormat: 'MM/DD/YYYY',
   table: {
     header: {
       updatedTime: 'Updated time',
@@ -52,6 +53,7 @@ const translation = {
     },
     variables: 'Variables',
     uploadImages: 'Uploaded Images',
+    modelParams: 'Model parameters',
   },
   filter: {
     period: {
@@ -79,6 +81,9 @@ const translation = {
   runDetail: {
     title: 'Conversation Log',
     workflowTitle: 'Log Detail',
+    fileListLabel: 'File Details',
+    fileListDetail: 'Detail',
+    testWithParams: 'Test With Params',
   },
   promptLog: 'Prompt Log',
   agentLog: 'Agent Log',

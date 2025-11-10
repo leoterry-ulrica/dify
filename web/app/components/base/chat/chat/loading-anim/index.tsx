@@ -2,16 +2,17 @@
 import type { FC } from 'react'
 import React from 'react'
 import s from './style.module.css'
+import cn from '@/utils/classnames'
 
-export type ILoaidingAnimProps = {
+export type ILoadingAnimProps = {
   type: 'text' | 'avatar'
 }
 
-const LoaidingAnim: FC<ILoaidingAnimProps> = ({
+const LoadingAnim: FC<ILoadingAnimProps> = ({
   type,
 }) => {
   return (
-    <div className={`${s['dot-flashing']} ${s[type]}`}></div>
+    <div className={cn(s['dot-flashing'], s[type])} />
   )
 }
-export default React.memo(LoaidingAnim)
+export default React.memo(LoadingAnim)

@@ -1,10 +1,17 @@
-import { BlockEnum } from '../../types'
 import type { NodeDefault } from '../../types'
 import { type ParameterExtractorNodeType, ReasoningModeType } from './types'
-import { ALL_CHAT_AVAILABLE_BLOCKS, ALL_COMPLETION_AVAILABLE_BLOCKS } from '@/app/components/workflow/constants'
+import { genNodeMetaData } from '@/app/components/workflow/utils'
+import { BlockEnum } from '@/app/components/workflow/types'
+import { BlockClassificationEnum } from '@/app/components/workflow/block-selector/types'
 const i18nPrefix = 'workflow'
 
+const metaData = genNodeMetaData({
+  classification: BlockClassificationEnum.Transform,
+  sort: 6,
+  type: BlockEnum.ParameterExtractor,
+})
 const nodeDefault: NodeDefault<ParameterExtractorNodeType> = {
+  metaData,
   defaultValue: {
     query: [],
     model: {
@@ -16,16 +23,9 @@ const nodeDefault: NodeDefault<ParameterExtractorNodeType> = {
       },
     },
     reasoning_mode: ReasoningModeType.prompt,
-  },
-  getAvailablePrevNodes(isChatMode: boolean) {
-    const nodes = isChatMode
-      ? ALL_CHAT_AVAILABLE_BLOCKS
-      : ALL_COMPLETION_AVAILABLE_BLOCKS.filter(type => type !== BlockEnum.End)
-    return nodes
-  },
-  getAvailableNextNodes(isChatMode: boolean) {
-    const nodes = isChatMode ? ALL_CHAT_AVAILABLE_BLOCKS : ALL_COMPLETION_AVAILABLE_BLOCKS
-    return nodes
+    vision: {
+      enabled: false,
+    },
   },
   checkValid(payload: ParameterExtractorNodeType, t: any) {
     let errorMessages = ''
@@ -54,6 +54,8 @@ const nodeDefault: NodeDefault<ParameterExtractorNodeType> = {
           errorMessages = t(`${i18nPrefix}.errorMsg.fieldRequired`, { field: t(`${i18nPrefix}.nodes.parameterExtractor.addExtractParameterContent.descriptionPlaceholder`) })
       })
     }
+    if (!errorMessages && payload.vision?.enabled && !payload.vision.configs?.variable_selector?.length)
+      errorMessages = t(`${i18nPrefix}.errorMsg.fieldRequired`, { field: t(`${i18nPrefix}.errorMsg.fields.visionVariable`) })
     return {
       isValid: !errorMessages,
       errorMessage: errorMessages,

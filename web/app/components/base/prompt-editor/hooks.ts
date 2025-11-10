@@ -35,8 +35,8 @@ import { DELETE_QUERY_BLOCK_COMMAND } from './plugins/query-block'
 import type { CustomTextNode } from './plugins/custom-text/node'
 import { registerLexicalTextEntity } from './utils'
 
-export type UseSelectOrDeleteHanlder = (nodeKey: string, command?: LexicalCommand<undefined>) => [RefObject<HTMLDivElement>, boolean]
-export const useSelectOrDelete: UseSelectOrDeleteHanlder = (nodeKey: string, command?: LexicalCommand<undefined>) => {
+export type UseSelectOrDeleteHandler = (nodeKey: string, command?: LexicalCommand<undefined>) => [RefObject<HTMLDivElement | null>, boolean]
+export const useSelectOrDelete: UseSelectOrDeleteHandler = (nodeKey: string, command?: LexicalCommand<undefined>) => {
   const ref = useRef<HTMLDivElement>(null)
   const [editor] = useLexicalComposerContext()
   const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey)
@@ -74,9 +74,11 @@ export const useSelectOrDelete: UseSelectOrDeleteHanlder = (nodeKey: string, com
   )
 
   const handleSelect = useCallback((e: MouseEvent) => {
-    e.stopPropagation()
-    clearSelection()
-    setSelected(true)
+    if (!e.metaKey && !e.ctrlKey) {
+      e.stopPropagation()
+      clearSelection()
+      setSelected(true)
+    }
   }, [setSelected, clearSelection])
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export const useSelectOrDelete: UseSelectOrDeleteHanlder = (nodeKey: string, com
   return [ref, isSelected]
 }
 
-export type UseTriggerHandler = () => [RefObject<HTMLDivElement>, boolean, Dispatch<SetStateAction<boolean>>]
+export type UseTriggerHandler = () => [RefObject<HTMLDivElement | null>, boolean, Dispatch<SetStateAction<boolean>>]
 export const useTrigger: UseTriggerHandler = () => {
   const triggerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)

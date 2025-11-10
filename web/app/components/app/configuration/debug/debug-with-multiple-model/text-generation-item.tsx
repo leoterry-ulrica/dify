@@ -13,6 +13,9 @@ import { promptVariablesToUserInputsForm } from '@/utils/model-config'
 import { TransferMethod } from '@/app/components/base/chat/types'
 import { useEventEmitterContextContext } from '@/context/event-emitter'
 import { useProviderContext } from '@/context/provider-context'
+import { useFeatures } from '@/app/components/base/features/hooks'
+import { cloneDeep, noop } from 'lodash-es'
+import { DEFAULT_CHAT_PROMPT_CONFIG, DEFAULT_COMPLETION_PROMPT_CONFIG } from '@/config'
 
 type TextGenerationItemProps = {
   modelAndParameter: ModelAndParameter
@@ -30,16 +33,14 @@ const TextGenerationItem: FC<TextGenerationItemProps> = ({
     introduction,
     suggestedQuestionsAfterAnswerConfig,
     citationConfig,
-    moderationConfig,
     externalDataToolsConfig,
     chatPromptConfig,
     completionPromptConfig,
     dataSets,
     datasetConfigs,
-    visionConfig,
-    moreLikeThisConfig,
   } = useDebugConfigurationContext()
   const { textGenerationModelList } = useProviderContext()
+  const features = useFeatures(s => s.features)
   const postDatasets = dataSets.map(({ id }) => ({
     dataset: {
       enabled: true,
@@ -50,22 +51,20 @@ const TextGenerationItem: FC<TextGenerationItemProps> = ({
   const config: TextGenerationConfig = {
     pre_prompt: !isAdvancedMode ? modelConfig.configs.prompt_template : '',
     prompt_type: promptMode,
-    chat_prompt_config: isAdvancedMode ? chatPromptConfig : {},
-    completion_prompt_config: isAdvancedMode ? completionPromptConfig : {},
+    chat_prompt_config: isAdvancedMode ? chatPromptConfig : cloneDeep(DEFAULT_CHAT_PROMPT_CONFIG),
+    completion_prompt_config: isAdvancedMode ? completionPromptConfig : cloneDeep(DEFAULT_COMPLETION_PROMPT_CONFIG),
     user_input_form: promptVariablesToUserInputsForm(modelConfig.configs.prompt_variables),
     dataset_query_variable: contextVar || '',
+    // features
+    more_like_this: features.moreLikeThis as any,
+    sensitive_word_avoidance: features.moderation as any,
+    text_to_speech: features.text2speech as any,
+    file_upload: features.file as any,
     opening_statement: introduction,
-    suggested_questions_after_answer: suggestedQuestionsAfterAnswerConfig,
     speech_to_text: speechToTextConfig,
+    suggested_questions_after_answer: suggestedQuestionsAfterAnswerConfig,
     retriever_resource: citationConfig,
-    sensitive_word_avoidance: moderationConfig,
     external_data_tools: externalDataToolsConfig,
-    more_like_this: moreLikeThisConfig,
-    text_to_speech: {
-      enabled: false,
-      voice: '',
-      language: '',
-    },
     agent_mode: {
       enabled: false,
       tools: [],
@@ -76,9 +75,7 @@ const TextGenerationItem: FC<TextGenerationItemProps> = ({
         datasets: [...postDatasets],
       } as any,
     },
-    file_upload: {
-      image: visionConfig,
-    },
+    system_parameters: modelConfig.system_parameters,
   }
   const {
     completion,
@@ -106,7 +103,7 @@ const TextGenerationItem: FC<TextGenerationItemProps> = ({
       model_config: configData,
     }
 
-    if (visionConfig.enabled && files && files?.length > 0) {
+    if ((config.file_upload as any).enabled && files && files?.length > 0) {
       data.files = files.map((item) => {
         if (item.transfer_method === TransferMethod.local_file) {
           return {
@@ -130,27 +127,18 @@ const TextGenerationItem: FC<TextGenerationItemProps> = ({
       doSend(v.payload.message, v.payload.files)
   })
 
-  const varList = modelConfig.configs.prompt_variables.map((item: any) => {
-    return {
-      label: item.key,
-      value: inputs[item.key],
-    }
-  })
-
   return (
     <TextGeneration
-      className='flex flex-col h-full overflow-y-auto border-none'
-      innerClassName='grow flex flex-col'
-      contentClassName='grow'
+      className='flex h-full flex-col overflow-y-auto border-none'
       content={completion}
       isLoading={!completion && isResponding}
       isResponding={isResponding}
       isInstalledApp={false}
+      siteInfo={null}
       messageId={messageId}
       isError={false}
-      onRetry={() => { }}
-      appId={appId}
-      varList={varList}
+      onRetry={noop}
+      inSidePanel
     />
   )
 }

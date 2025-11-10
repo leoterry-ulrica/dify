@@ -2,7 +2,6 @@ const translation = {
   title: 'Kiểm tra truy vấn',
   desc: 'Kiểm tra hiệu quả truy xuất của Kiến thức dựa trên văn bản truy vấn đã cho.',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'Gần đây',
   table: {
     header: {
       source: 'Nguồn',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Không có kết quả truy vấn gần đây',
   viewChart: 'Xem BIỂU ĐỒ VECTOR',
+  settingTitle: 'Cài đặt truy xuất',
+  viewDetail: 'Xem chi tiết',
+  records: 'Hồ sơ',
+  open: 'Mở',
+  keyword: 'Từ khoá',
+  hitChunks: 'Nhấn {{num}} đoạn con',
+  chunkDetail: 'Chi tiết khối',
 }
 
 export default translation

@@ -2,7 +2,6 @@ const translation = {
   title: 'पुनर्प्राप्ति परीक्षण',
   desc: 'दिए गए प्रश्न पाठ के आधार पर ज्ञान की प्रभावशीलता का परीक्षण करें।',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'हाल के',
   table: {
     header: {
       source: 'स्रोत',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'यहां कोई हाल के प्रश्न परिणाम नहीं हैं',
   viewChart: 'वेक्टर चार्ट देखें',
+  viewDetail: 'विस्तार से देखें',
+  settingTitle: 'पुनर्प्राप्ति सेटिंग',
+  hitChunks: '{{num}} बच्चे के टुकड़े मारो',
+  keyword: 'खोजशब्दों',
+  chunkDetail: 'चंक विवरण',
+  open: 'खोलना',
+  records: 'रिकॉर्ड',
 }
 
 export default translation

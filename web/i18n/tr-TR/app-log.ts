@@ -52,6 +52,7 @@ const translation = {
     },
     variables: 'Değişkenler',
     uploadImages: 'Yüklenen Görseller',
+    modelParams: 'Model parametreleri',
   },
   filter: {
     period: {
@@ -79,6 +80,9 @@ const translation = {
   runDetail: {
     title: 'Konuşma Günlüğü',
     workflowTitle: 'Günlük Detayı',
+    fileListDetail: 'Ayrıntı',
+    fileListLabel: 'Dosya Detayları',
+    testWithParams: 'Parametrelerle Test',
   },
   promptLog: 'Prompt Günlüğü',
   agentLog: 'Agent Günlüğü',
@@ -90,6 +94,7 @@ const translation = {
     iteration: 'Yineleme',
     finalProcessing: 'Son İşleme',
   },
+  dateFormat: 'GG/AA/YYYY',
 }
 
 export default translation

@@ -2,7 +2,7 @@ const translation = {
   title: 'Dzienniki',
   description:
     'Dzienniki rejestrują stan działania aplikacji, w tym dane wejściowe użytkowników i odpowiedzi AI.',
-  dateTimeFormat: 'DD/MM/YYYY HH:mm',
+  dateTimeFormat: 'DD/MM/YYYY HH:mm:ss',
   table: {
     header: {
       updatedTime: 'Czas aktualizacji',
@@ -56,6 +56,7 @@ const translation = {
     },
     variables: 'Zmienne',
     uploadImages: 'Przesłane obrazy',
+    modelParams: 'Parametry modelu',
   },
   filter: {
     period: {
@@ -83,6 +84,9 @@ const translation = {
   runDetail: {
     title: 'Dziennik rozmowy',
     workflowTitle: 'Szczegół dziennika',
+    fileListDetail: 'Detal',
+    fileListLabel: 'Szczegóły pliku',
+    testWithParams: 'Test z parametrami',
   },
   promptLog: 'Dziennik monitów',
   agentLog: 'Dziennik agenta',
@@ -94,6 +98,7 @@ const translation = {
     iteration: 'Iteracja',
     finalProcessing: 'Końcowa obróbka',
   },
+  dateFormat: 'DD/MM/RRRR',
 }
 
 export default translation

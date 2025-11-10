@@ -2,7 +2,6 @@ const translation = {
   title: 'Prueba de recuperación',
   desc: 'Prueba del efecto de impacto del conocimiento basado en el texto de consulta proporcionado.',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'Recientes',
   table: {
     header: {
       source: 'Fuente',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'No hay resultados de consulta recientes aquí',
   viewChart: 'Ver GRÁFICO VECTORIAL',
+  viewDetail: 'Ver Detalle',
+  settingTitle: 'Configuración de recuperación',
+  open: 'Abrir',
+  records: 'Archivo',
+  chunkDetail: 'Detalle de fragmentos',
+  keyword: 'Palabras clave',
+  hitChunks: 'Golpea {{num}} fragmentos secundarios',
 }
 
 export default translation

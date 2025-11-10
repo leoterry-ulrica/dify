@@ -1,11 +1,37 @@
+// import { RETRIEVAL_OUTPUT_STRUCT } from '../../constants'
 import { BlockEnum, EditionType } from '../../types'
 import { type NodeDefault, type PromptItem, PromptRole } from '../../types'
 import type { LLMNodeType } from './types'
-import { ALL_CHAT_AVAILABLE_BLOCKS, ALL_COMPLETION_AVAILABLE_BLOCKS } from '@/app/components/workflow/constants'
+import { genNodeMetaData } from '@/app/components/workflow/utils'
+
+const RETRIEVAL_OUTPUT_STRUCT = `{
+  "content": "",
+  "title": "",
+  "url": "",
+  "icon": "",
+  "metadata": {
+    "dataset_id": "",
+    "dataset_name": "",
+    "document_id": [],
+    "document_name": "",
+    "document_data_source_type": "",
+    "segment_id": "",
+    "segment_position": "",
+    "segment_word_count": "",
+    "segment_hit_count": "",
+    "segment_index_node_hash": "",
+    "score": ""
+  }
+}`
 
 const i18nPrefix = 'workflow.errorMsg'
 
+const metaData = genNodeMetaData({
+  sort: 1,
+  type: BlockEnum.LLM,
+})
 const nodeDefault: NodeDefault<LLMNodeType> = {
+  metaData,
   defaultValue: {
     model: {
       provider: '',
@@ -27,15 +53,9 @@ const nodeDefault: NodeDefault<LLMNodeType> = {
       enabled: false,
     },
   },
-  getAvailablePrevNodes(isChatMode: boolean) {
-    const nodes = isChatMode
-      ? ALL_CHAT_AVAILABLE_BLOCKS
-      : ALL_COMPLETION_AVAILABLE_BLOCKS.filter(type => type !== BlockEnum.End)
-    return nodes
-  },
-  getAvailableNextNodes(isChatMode: boolean) {
-    const nodes = isChatMode ? ALL_CHAT_AVAILABLE_BLOCKS : ALL_COMPLETION_AVAILABLE_BLOCKS
-    return nodes
+  defaultRunInputData: {
+    '#context#': [RETRIEVAL_OUTPUT_STRUCT],
+    '#files#': [],
   },
   checkValid(payload: LLMNodeType, t: any) {
     let errorMessages = ''
@@ -44,7 +64,7 @@ const nodeDefault: NodeDefault<LLMNodeType> = {
 
     if (!errorMessages && !payload.memory) {
       const isChatModel = payload.model.mode === 'chat'
-      const isPromptyEmpty = isChatModel
+      const isPromptEmpty = isChatModel
         ? !(payload.prompt_template as PromptItem[]).some((t) => {
           if (t.edition_type === EditionType.jinja2)
             return t.jinja2_text !== ''
@@ -52,7 +72,7 @@ const nodeDefault: NodeDefault<LLMNodeType> = {
           return t.text !== ''
         })
         : ((payload.prompt_template as PromptItem).edition_type === EditionType.jinja2 ? (payload.prompt_template as PromptItem).jinja2_text === '' : (payload.prompt_template as PromptItem).text === '')
-      if (isPromptyEmpty)
+      if (isPromptEmpty)
         errorMessages = t(`${i18nPrefix}.fieldRequired`, { field: t('workflow.nodes.llm.prompt') })
     }
 
@@ -79,6 +99,8 @@ const nodeDefault: NodeDefault<LLMNodeType> = {
         })
       }
     }
+    if (!errorMessages && payload.vision?.enabled && !payload.vision.configs?.variable_selector?.length)
+      errorMessages = t(`${i18nPrefix}.fieldRequired`, { field: t(`${i18nPrefix}.fields.visionVariable`) })
     return {
       isValid: !errorMessages,
       errorMessage: errorMessages,

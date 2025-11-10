@@ -1,6 +1,6 @@
 import type { Fetcher } from 'swr'
 import { del, get, patch, post, put } from './base'
-import type { ApikeysListResponse, AppDailyConversationsResponse, AppDailyEndUsersResponse, AppDailyMessagesResponse, AppDetailResponse, AppListResponse, AppSSOResponse, AppStatisticsResponse, AppTemplatesResponse, AppTokenCostsResponse, AppVoicesListResponse, CreateApiKeyResponse, GenerationIntroductionResponse, TracingConfig, TracingStatus, UpdateAppModelConfigResponse, UpdateAppSiteCodeResponse, UpdateOpenAIKeyResponse, ValidateOpenAIKeyResponse, WorkflowDailyConversationsResponse } from '@/models/app'
+import type { ApiKeysListResponse, AppDailyConversationsResponse, AppDailyEndUsersResponse, AppDailyMessagesResponse, AppDetailResponse, AppListResponse, AppStatisticsResponse, AppTemplatesResponse, AppTokenCostsResponse, AppVoicesListResponse, CreateApiKeyResponse, DSLImportMode, DSLImportResponse, GenerationIntroductionResponse, TracingConfig, TracingStatus, UpdateAppModelConfigResponse, UpdateAppSiteCodeResponse, UpdateOpenAIKeyResponse, ValidateOpenAIKeyResponse, WorkflowDailyConversationsResponse } from '@/models/app'
 import type { CommonResponse } from '@/models/common'
 import type { AppIconType, AppMode, ModelConfig } from '@/types/app'
 import type { TracingProvider } from '@/app/(commonLayout)/app/(appDetailLayout)/[appId]/overview/tracing/type'
@@ -9,15 +9,13 @@ export const fetchAppList: Fetcher<AppListResponse, { url: string; params?: Reco
   return get<AppListResponse>(url, { params })
 }
 
-export const fetchAppDetail = ({ url, id }: { url: string; id: string }) => {
+export const fetchAppDetail: Fetcher<AppDetailResponse, { url: string; id: string }> = ({ url, id }) => {
   return get<AppDetailResponse>(`${url}/${id}`)
 }
 
-export const fetchAppSSO = async ({ appId }: { appId: string }) => {
-  return get<AppSSOResponse>(`/enterprise/app-setting/sso?appID=${appId}`)
-}
-export const updateAppSSO = async ({ id, enabled }: { id: string; enabled: boolean }) => {
-  return post('/enterprise/app-setting/sso', { body: { app_id: id, enabled } })
+// Direct API call function for non-SWR usage
+export const fetchAppDetailDirect = async ({ url, id }: { url: string; id: string }): Promise<AppDetailResponse> => {
+  return get<AppDetailResponse>(`${url}/${id}`)
 }
 
 export const fetchAppTemplates: Fetcher<AppTemplatesResponse, { url: string }> = ({ url }) => {
@@ -28,24 +26,40 @@ export const createApp: Fetcher<AppDetailResponse, { name: string; icon_type?: A
   return post<AppDetailResponse>('apps', { body: { name, icon_type, icon, icon_background, mode, description, model_config: config } })
 }
 
-export const updateAppInfo: Fetcher<AppDetailResponse, { appID: string; name: string; icon_type: AppIconType; icon: string; icon_background?: string; description: string }> = ({ appID, name, icon_type, icon, icon_background, description }) => {
-  return put<AppDetailResponse>(`apps/${appID}`, { body: { name, icon_type, icon, icon_background, description } })
+export const updateAppInfo: Fetcher<AppDetailResponse, { appID: string; name: string; icon_type: AppIconType; icon: string; icon_background?: string; description: string; use_icon_as_answer_icon?: boolean; max_active_requests?: number | null }> = ({ appID, name, icon_type, icon, icon_background, description, use_icon_as_answer_icon, max_active_requests }) => {
+  const body = { name, icon_type, icon, icon_background, description, use_icon_as_answer_icon, max_active_requests }
+  return put<AppDetailResponse>(`apps/${appID}`, { body })
 }
 
 export const copyApp: Fetcher<AppDetailResponse, { appID: string; name: string; icon_type: AppIconType; icon: string; icon_background?: string | null; mode: AppMode; description?: string }> = ({ appID, name, icon_type, icon, icon_background, mode, description }) => {
   return post<AppDetailResponse>(`apps/${appID}/copy`, { body: { name, icon_type, icon, icon_background, mode, description } })
 }
 
-export const exportAppConfig: Fetcher<{ data: string }, { appID: string; include?: boolean }> = ({ appID, include = false }) => {
-  return get<{ data: string }>(`apps/${appID}/export?include_secret=${include}`)
+export const exportAppConfig: Fetcher<{ data: string }, { appID: string; include?: boolean; workflowID?: string }> = ({ appID, include = false, workflowID }) => {
+  const params = new URLSearchParams({
+    include_secret: include.toString(),
+  })
+  if (workflowID)
+    params.append('workflow_id', workflowID)
+  return get<{ data: string }>(`apps/${appID}/export?${params.toString()}`)
 }
 
+// TODO: delete
 export const importApp: Fetcher<AppDetailResponse, { data: string; name?: string; description?: string; icon_type?: AppIconType; icon?: string; icon_background?: string }> = ({ data, name, description, icon_type, icon, icon_background }) => {
   return post<AppDetailResponse>('apps/import', { body: { data, name, description, icon_type, icon, icon_background } })
 }
 
+// TODO: delete
 export const importAppFromUrl: Fetcher<AppDetailResponse, { url: string; name?: string; description?: string; icon?: string; icon_background?: string }> = ({ url, name, description, icon, icon_background }) => {
   return post<AppDetailResponse>('apps/import/url', { body: { url, name, description, icon, icon_background } })
+}
+
+export const importDSL: Fetcher<DSLImportResponse, { mode: DSLImportMode; yaml_content?: string; yaml_url?: string; app_id?: string; name?: string; description?: string; icon_type?: AppIconType; icon?: string; icon_background?: string }> = ({ mode, yaml_content, yaml_url, app_id, name, description, icon_type, icon, icon_background }) => {
+  return post<DSLImportResponse>('apps/imports', { body: { mode, yaml_content, yaml_url, app_id, name, description, icon, icon_type, icon_background } })
+}
+
+export const importDSLConfirm: Fetcher<DSLImportResponse, { import_id: string }> = ({ import_id }) => {
+  return post<DSLImportResponse>(`apps/imports/${import_id}/confirm`, { body: {} })
 }
 
 export const switchApp: Fetcher<{ new_app_id: string }, { appID: string; name: string; icon_type: AppIconType; icon: string; icon_background?: string | null }> = ({ appID, name, icon_type, icon, icon_background }) => {
@@ -110,8 +124,8 @@ export const fetchAppListNoMock: Fetcher<AppListResponse, { url: string; params:
   return get<AppListResponse>(url, params)
 }
 
-export const fetchApiKeysList: Fetcher<ApikeysListResponse, { url: string; params: Record<string, any> }> = ({ url, params }) => {
-  return get<ApikeysListResponse>(url, params)
+export const fetchApiKeysList: Fetcher<ApiKeysListResponse, { url: string; params: Record<string, any> }> = ({ url, params }) => {
+  return get<ApiKeysListResponse>(url, params)
 }
 
 export const delApikey: Fetcher<CommonResponse, { url: string; params: Record<string, any> }> = ({ url, params }) => {

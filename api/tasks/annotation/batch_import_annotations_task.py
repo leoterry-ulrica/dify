@@ -13,6 +13,8 @@ from models.dataset import Dataset
 from models.model import App, AppAnnotationSetting, MessageAnnotation
 from services.dataset_service import DatasetCollectionBindingService
 
+logger = logging.getLogger(__name__)
+
 
 @shared_task(queue="dataset")
 def batch_import_annotations_task(job_id: str, content_list: list[dict], app_id: str, tenant_id: str, user_id: str):
@@ -25,11 +27,11 @@ def batch_import_annotations_task(job_id: str, content_list: list[dict], app_id:
     :param user_id: user_id
 
     """
-    logging.info(click.style("Start batch import annotation: {}".format(job_id), fg="green"))
+    logger.info(click.style(f"Start batch import annotation: {job_id}", fg="green"))
     start_at = time.perf_counter()
-    indexing_cache_key = "app_annotation_batch_import_{}".format(str(job_id))
+    indexing_cache_key = f"app_annotation_batch_import_{str(job_id)}"
     # get app info
-    app = db.session.query(App).filter(App.id == app_id, App.tenant_id == tenant_id, App.status == "normal").first()
+    app = db.session.query(App).where(App.id == app_id, App.tenant_id == tenant_id, App.status == "normal").first()
 
     if app:
         try:
@@ -48,7 +50,7 @@ def batch_import_annotations_task(job_id: str, content_list: list[dict], app_id:
                 documents.append(document)
             # if annotation reply is enabled , batch add annotations' index
             app_annotation_setting = (
-                db.session.query(AppAnnotationSetting).filter(AppAnnotationSetting.app_id == app_id).first()
+                db.session.query(AppAnnotationSetting).where(AppAnnotationSetting.app_id == app_id).first()
             )
 
             if app_annotation_setting:
@@ -74,7 +76,7 @@ def batch_import_annotations_task(job_id: str, content_list: list[dict], app_id:
             db.session.commit()
             redis_client.setex(indexing_cache_key, 600, "completed")
             end_at = time.perf_counter()
-            logging.info(
+            logger.info(
                 click.style(
                     "Build index successful for batch import annotation: {} latency: {}".format(
                         job_id, end_at - start_at
@@ -85,6 +87,8 @@ def batch_import_annotations_task(job_id: str, content_list: list[dict], app_id:
         except Exception as e:
             db.session.rollback()
             redis_client.setex(indexing_cache_key, 600, "error")
-            indexing_error_msg_key = "app_annotation_batch_import_error_msg_{}".format(str(job_id))
+            indexing_error_msg_key = f"app_annotation_batch_import_error_msg_{str(job_id)}"
             redis_client.setex(indexing_error_msg_key, 600, str(e))
-            logging.exception("Build index for batch import annotations failed")
+            logger.exception("Build index for batch import annotations failed")
+        finally:
+            db.session.close()

@@ -2,7 +2,6 @@ const translation = {
   title: 'Teste de Recuperação',
   desc: 'Teste o efeito de recuperação do conhecimento com base no texto de consulta fornecido.',
   dateTimeFormat: 'MM/DD/YYYY hh:mm A',
-  recents: 'Recentes',
   table: {
     header: {
       source: 'Origem',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Nenhum resultado de consulta recente aqui',
   viewChart: 'Ver GRÁFICO DE VETORES',
+  viewDetail: 'Ver detalhes',
+  settingTitle: 'Configuração de recuperação',
+  records: 'Arquivo',
+  hitChunks: 'Hit {{num}} pedaços filhos',
+  open: 'Abrir',
+  chunkDetail: 'Detalhe do pedaço',
+  keyword: 'Palavras-chave',
 }
 
 export default translation

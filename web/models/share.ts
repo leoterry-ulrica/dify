@@ -1,4 +1,4 @@
-import type { Locale } from '@/i18n'
+import type { Locale } from '@/i18n-config'
 import type { AppIconType } from '@/types/app'
 
 export type ResponseHolder = {}
@@ -25,6 +25,7 @@ export type SiteInfo = {
   privacy_policy?: string
   custom_disclaimer?: string
   show_workflow_steps?: boolean
+  use_icon_as_answer_icon?: boolean
 }
 
 export type AppMeta = {
@@ -34,7 +35,7 @@ export type AppMeta = {
 export type AppData = {
   app_id: string
   can_replace_logo?: boolean
-  custom_config?: Record<string, any>
+  custom_config: Record<string, any> | null
   enable_site?: boolean
   end_user_id?: string
   site: SiteInfo

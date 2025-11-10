@@ -3,11 +3,10 @@ from core.model_runtime.schema_validators.common_validator import CommonValidato
 
 
 class ProviderCredentialSchemaValidator(CommonValidator):
-
     def __init__(self, provider_credential_schema: ProviderCredentialSchema):
         self.provider_credential_schema = provider_credential_schema
 
-    def validate_and_filter(self, credentials: dict) -> dict:
+    def validate_and_filter(self, credentials: dict):
         """
         Validate provider credentials
 

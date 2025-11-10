@@ -1,23 +1,23 @@
 from decimal import Decimal
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum, auto
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from core.model_runtime.entities.common_entities import I18nObject
 
 
-class ModelType(Enum):
+class ModelType(StrEnum):
     """
     Enum class for model type.
     """
-    LLM = "llm"
+
+    LLM = auto()
     TEXT_EMBEDDING = "text-embedding"
-    RERANK = "rerank"
-    SPEECH2TEXT = "speech2text"
-    MODERATION = "moderation"
-    TTS = "tts"
-    TEXT2IMG = "text2img"
+    RERANK = auto()
+    SPEECH2TEXT = auto()
+    MODERATION = auto()
+    TTS = auto()
 
     @classmethod
     def value_of(cls, origin_model_type: str) -> "ModelType":
@@ -26,22 +26,20 @@ class ModelType(Enum):
 
         :return: model type
         """
-        if origin_model_type == 'text-generation' or origin_model_type == cls.LLM.value:
+        if origin_model_type in {"text-generation", cls.LLM}:
             return cls.LLM
-        elif origin_model_type == 'embeddings' or origin_model_type == cls.TEXT_EMBEDDING.value:
+        elif origin_model_type in {"embeddings", cls.TEXT_EMBEDDING}:
             return cls.TEXT_EMBEDDING
-        elif origin_model_type == 'reranking' or origin_model_type == cls.RERANK.value:
+        elif origin_model_type in {"reranking", cls.RERANK}:
             return cls.RERANK
-        elif origin_model_type == 'speech2text' or origin_model_type == cls.SPEECH2TEXT.value:
+        elif origin_model_type in {"speech2text", cls.SPEECH2TEXT}:
             return cls.SPEECH2TEXT
-        elif origin_model_type == 'tts' or origin_model_type == cls.TTS.value:
+        elif origin_model_type in {"tts", cls.TTS}:
             return cls.TTS
-        elif origin_model_type == 'text2img' or origin_model_type == cls.TEXT2IMG.value:
-            return cls.TEXT2IMG
-        elif origin_model_type == cls.MODERATION.value:
+        elif origin_model_type == cls.MODERATION:
             return cls.MODERATION
         else:
-            raise ValueError(f'invalid origin model type {origin_model_type}')
+            raise ValueError(f"invalid origin model type {origin_model_type}")
 
     def to_origin_model_type(self) -> str:
         """
@@ -50,55 +48,62 @@ class ModelType(Enum):
         :return: origin model type
         """
         if self == self.LLM:
-            return 'text-generation'
+            return "text-generation"
         elif self == self.TEXT_EMBEDDING:
-            return 'embeddings'
+            return "embeddings"
         elif self == self.RERANK:
-            return 'reranking'
+            return "reranking"
         elif self == self.SPEECH2TEXT:
-            return 'speech2text'
+            return "speech2text"
         elif self == self.TTS:
-            return 'tts'
+            return "tts"
         elif self == self.MODERATION:
-            return 'moderation'
-        elif self == self.TEXT2IMG:
-            return 'text2img'
+            return "moderation"
         else:
-            raise ValueError(f'invalid model type {self}')
+            raise ValueError(f"invalid model type {self}")
 
-class FetchFrom(Enum):
+
+class FetchFrom(StrEnum):
     """
     Enum class for fetch from.
     """
+
     PREDEFINED_MODEL = "predefined-model"
     CUSTOMIZABLE_MODEL = "customizable-model"
 
 
-class ModelFeature(Enum):
+class ModelFeature(StrEnum):
     """
     Enum class for llm feature.
     """
+
     TOOL_CALL = "tool-call"
     MULTI_TOOL_CALL = "multi-tool-call"
     AGENT_THOUGHT = "agent-thought"
-    VISION = "vision"
+    VISION = auto()
     STREAM_TOOL_CALL = "stream-tool-call"
+    DOCUMENT = auto()
+    VIDEO = auto()
+    AUDIO = auto()
+    STRUCTURED_OUTPUT = "structured-output"
 
 
-class DefaultParameterName(Enum):
+class DefaultParameterName(StrEnum):
     """
     Enum class for parameter template variable.
     """
-    TEMPERATURE = "temperature"
-    TOP_P = "top_p"
-    PRESENCE_PENALTY = "presence_penalty"
-    FREQUENCY_PENALTY = "frequency_penalty"
-    MAX_TOKENS = "max_tokens"
-    RESPONSE_FORMAT = "response_format"
-    JSON_SCHEMA = "json_schema"
+
+    TEMPERATURE = auto()
+    TOP_P = auto()
+    TOP_K = auto()
+    PRESENCE_PENALTY = auto()
+    FREQUENCY_PENALTY = auto()
+    MAX_TOKENS = auto()
+    RESPONSE_FORMAT = auto()
+    JSON_SCHEMA = auto()
 
     @classmethod
-    def value_of(cls, value: Any) -> 'DefaultParameterName':
+    def value_of(cls, value: Any) -> "DefaultParameterName":
         """
         Get parameter name from value.
 
@@ -108,65 +113,73 @@ class DefaultParameterName(Enum):
         for name in cls:
             if name.value == value:
                 return name
-        raise ValueError(f'invalid parameter name {value}')
+        raise ValueError(f"invalid parameter name {value}")
 
 
-class ParameterType(Enum):
+class ParameterType(StrEnum):
     """
     Enum class for parameter type.
     """
-    FLOAT = "float"
-    INT = "int"
-    STRING = "string"
-    BOOLEAN = "boolean"
-    TEXT = "text"
+
+    FLOAT = auto()
+    INT = auto()
+    STRING = auto()
+    BOOLEAN = auto()
+    TEXT = auto()
 
 
-class ModelPropertyKey(Enum):
+class ModelPropertyKey(StrEnum):
     """
     Enum class for model property key.
     """
-    MODE = "mode"
-    CONTEXT_SIZE = "context_size"
-    MAX_CHUNKS = "max_chunks"
-    FILE_UPLOAD_LIMIT = "file_upload_limit"
-    SUPPORTED_FILE_EXTENSIONS = "supported_file_extensions"
-    MAX_CHARACTERS_PER_CHUNK = "max_characters_per_chunk"
-    DEFAULT_VOICE = "default_voice"
-    VOICES = "voices"
-    WORD_LIMIT = "word_limit"
-    AUDIO_TYPE = "audio_type"
-    MAX_WORKERS = "max_workers"
+
+    MODE = auto()
+    CONTEXT_SIZE = auto()
+    MAX_CHUNKS = auto()
+    FILE_UPLOAD_LIMIT = auto()
+    SUPPORTED_FILE_EXTENSIONS = auto()
+    MAX_CHARACTERS_PER_CHUNK = auto()
+    DEFAULT_VOICE = auto()
+    VOICES = auto()
+    WORD_LIMIT = auto()
+    AUDIO_TYPE = auto()
+    MAX_WORKERS = auto()
 
 
 class ProviderModel(BaseModel):
     """
     Model class for provider model.
     """
+
     model: str
     label: I18nObject
     model_type: ModelType
-    features: Optional[list[ModelFeature]] = None
+    features: list[ModelFeature] | None = None
     fetch_from: FetchFrom
     model_properties: dict[ModelPropertyKey, Any]
     deprecated: bool = False
     model_config = ConfigDict(protected_namespaces=())
+
+    @property
+    def support_structure_output(self) -> bool:
+        return self.features is not None and ModelFeature.STRUCTURED_OUTPUT in self.features
 
 
 class ParameterRule(BaseModel):
     """
     Model class for parameter rule.
     """
+
     name: str
-    use_template: Optional[str] = None
+    use_template: str | None = None
     label: I18nObject
     type: ParameterType
-    help: Optional[I18nObject] = None
+    help: I18nObject | None = None
     required: bool = False
-    default: Optional[Any] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    precision: Optional[int] = None
+    default: Any | None = None
+    min: float | None = None
+    max: float | None = None
+    precision: int | None = None
     options: list[str] = []
 
 
@@ -174,8 +187,9 @@ class PriceConfig(BaseModel):
     """
     Model class for pricing info.
     """
+
     input: Decimal
-    output: Optional[Decimal] = None
+    output: Decimal | None = None
     unit: Decimal
     currency: str
 
@@ -184,26 +198,42 @@ class AIModelEntity(ProviderModel):
     """
     Model class for AI model.
     """
+
     parameter_rules: list[ParameterRule] = []
-    pricing: Optional[PriceConfig] = None
+    pricing: PriceConfig | None = None
+
+    @model_validator(mode="after")
+    def validate_model(self):
+        supported_schema_keys = ["json_schema"]
+        schema_key = next((rule.name for rule in self.parameter_rules if rule.name in supported_schema_keys), None)
+        if not schema_key:
+            return self
+        if self.features is None:
+            self.features = [ModelFeature.STRUCTURED_OUTPUT]
+        else:
+            if ModelFeature.STRUCTURED_OUTPUT not in self.features:
+                self.features.append(ModelFeature.STRUCTURED_OUTPUT)
+        return self
 
 
 class ModelUsage(BaseModel):
     pass
 
 
-class PriceType(Enum):
+class PriceType(StrEnum):
     """
     Enum class for price type.
     """
-    INPUT = "input"
-    OUTPUT = "output"
+
+    INPUT = auto()
+    OUTPUT = auto()
 
 
 class PriceInfo(BaseModel):
     """
     Model class for price info.
     """
+
     unit_price: Decimal
     unit: Decimal
     total_amount: Decimal

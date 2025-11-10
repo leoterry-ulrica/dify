@@ -1,3 +1,5 @@
+from sqlalchemy import select
+
 from events.app_event import app_model_config_was_updated
 from extensions.ext_database import db
 from models.dataset import AppDatasetJoin
@@ -8,25 +10,26 @@ from models.model import AppModelConfig
 def handle(sender, **kwargs):
     app = sender
     app_model_config = kwargs.get("app_model_config")
+    if app_model_config is None:
+        return
 
     dataset_ids = get_dataset_ids_from_model_config(app_model_config)
 
-    app_dataset_joins = db.session.query(AppDatasetJoin).filter(AppDatasetJoin.app_id == app.id).all()
+    app_dataset_joins = db.session.scalars(select(AppDatasetJoin).where(AppDatasetJoin.app_id == app.id)).all()
 
-    removed_dataset_ids = []
+    removed_dataset_ids: set[str] = set()
     if not app_dataset_joins:
         added_dataset_ids = dataset_ids
     else:
-        old_dataset_ids = set()
-        for app_dataset_join in app_dataset_joins:
-            old_dataset_ids.add(app_dataset_join.dataset_id)
+        old_dataset_ids: set[str] = set()
+        old_dataset_ids.update(app_dataset_join.dataset_id for app_dataset_join in app_dataset_joins)
 
         added_dataset_ids = dataset_ids - old_dataset_ids
         removed_dataset_ids = old_dataset_ids - dataset_ids
 
     if removed_dataset_ids:
         for dataset_id in removed_dataset_ids:
-            db.session.query(AppDatasetJoin).filter(
+            db.session.query(AppDatasetJoin).where(
                 AppDatasetJoin.app_id == app.id, AppDatasetJoin.dataset_id == dataset_id
             ).delete()
 
@@ -38,8 +41,8 @@ def handle(sender, **kwargs):
     db.session.commit()
 
 
-def get_dataset_ids_from_model_config(app_model_config: AppModelConfig) -> set:
-    dataset_ids = set()
+def get_dataset_ids_from_model_config(app_model_config: AppModelConfig) -> set[str]:
+    dataset_ids: set[str] = set()
     if not app_model_config:
         return dataset_ids
 

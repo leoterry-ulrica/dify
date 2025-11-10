@@ -1,7 +1,7 @@
 const translation = {
   title: 'Jurnale',
   description: 'Jurnalele înregistrează starea de funcționare a aplicației, inclusiv intrările utilizatorilor și răspunsurile AI.',
-  dateTimeFormat: 'DD/MM/YYYY hh:mm A',
+  dateTimeFormat: 'DD/MM/YYYY hh:mm:ss A',
   table: {
     header: {
       updatedTime: 'Timp actualizare',
@@ -52,6 +52,7 @@ const translation = {
     },
     variables: 'Variabile',
     uploadImages: 'Imagini încărcate',
+    modelParams: 'Parametrii modelului',
   },
   filter: {
     period: {
@@ -79,6 +80,9 @@ const translation = {
   runDetail: {
     title: 'Jurnal de conversație',
     workflowTitle: 'Detalii jurnal',
+    fileListDetail: 'Amănunt',
+    fileListLabel: 'Detalii fișier',
+    testWithParams: 'Test cu parametri',
   },
   promptLog: 'Jurnal prompt',
   agentLog: 'Jurnal agent',
@@ -90,6 +94,7 @@ const translation = {
     iteration: 'Iterație',
     finalProcessing: 'Procesare finală',
   },
+  dateFormat: 'ZZ/LL/AAAA',
 }
 
 export default translation

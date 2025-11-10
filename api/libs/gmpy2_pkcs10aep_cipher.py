@@ -27,11 +27,11 @@ import gmpy2
 from Crypto import Random
 from Crypto.Signature.pss import MGF1
 from Crypto.Util.number import bytes_to_long, ceil_div, long_to_bytes
-from Crypto.Util.py3compat import _copy_bytes, bord
+from Crypto.Util.py3compat import bord
 from Crypto.Util.strxor import strxor
 
 
-class PKCS1OAEP_Cipher:
+class PKCS1OAepCipher:
     """Cipher object for PKCS#1 v1.5 OAEP.
     Do not create directly: use :func:`new` instead."""
 
@@ -72,7 +72,7 @@ class PKCS1OAEP_Cipher:
         else:
             self._mgf = lambda x, y: MGF1(x, y, self._hashObj)
 
-        self._label = _copy_bytes(None, None, label)
+        self._label = bytes(label)
         self._randfunc = randfunc
 
     def can_encrypt(self):
@@ -120,7 +120,7 @@ class PKCS1OAEP_Cipher:
         # Step 2b
         ps = b"\x00" * ps_len
         # Step 2c
-        db = lHash + ps + b"\x01" + _copy_bytes(None, None, message)
+        db = lHash + ps + b"\x01" + bytes(message)
         # Step 2d
         ros = self._randfunc(hLen)
         # Step 2e
@@ -191,12 +191,12 @@ class PKCS1OAEP_Cipher:
         # Step 3g
         one_pos = hLen + db[hLen:].find(b"\x01")
         lHash1 = db[:hLen]
-        invalid = bord(y) | int(one_pos < hLen)
+        invalid = bord(y) | int(one_pos < hLen)  # type: ignore[arg-type]
         hash_compare = strxor(lHash1, lHash)
         for x in hash_compare:
-            invalid |= bord(x)
+            invalid |= bord(x)  # type: ignore[arg-type]
         for x in db[hLen:one_pos]:
-            invalid |= bord(x)
+            invalid |= bord(x)  # type: ignore[arg-type]
         if invalid != 0:
             raise ValueError("Incorrect decryption.")
         # Step 4
@@ -204,7 +204,8 @@ class PKCS1OAEP_Cipher:
 
 
 def new(key, hashAlgo=None, mgfunc=None, label=b"", randfunc=None):
-    """Return a cipher object :class:`PKCS1OAEP_Cipher` that can be used to perform PKCS#1 OAEP encryption or decryption.
+    """Return a cipher object :class:`PKCS1OAEP_Cipher`
+     that can be used to perform PKCS#1 OAEP encryption or decryption.
 
     :param key:
       The key object to use to encrypt or decrypt the message.
@@ -237,4 +238,4 @@ def new(key, hashAlgo=None, mgfunc=None, label=b"", randfunc=None):
 
     if randfunc is None:
         randfunc = Random.get_random_bytes
-    return PKCS1OAEP_Cipher(key, hashAlgo, mgfunc, label, randfunc)
+    return PKCS1OAepCipher(key, hashAlgo, mgfunc, label, randfunc)

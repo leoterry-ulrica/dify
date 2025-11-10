@@ -5,7 +5,7 @@ import {
   useState,
 } from 'react'
 
-export type UseResizePanelPrarams = {
+export type UseResizePanelParams = {
   direction?: 'horizontal' | 'vertical' | 'both'
   triggerDirection?: 'top' | 'right' | 'bottom' | 'left' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
   minWidth?: number
@@ -15,7 +15,7 @@ export type UseResizePanelPrarams = {
   onResized?: (width: number, height: number) => void
   onResize?: (width: number, height: number) => void
 }
-export const useResizePanel = (params?: UseResizePanelPrarams) => {
+export const useResizePanel = (params?: UseResizePanelParams) => {
   const {
     direction = 'both',
     triggerDirection = 'bottom-right',
@@ -33,7 +33,7 @@ export const useResizePanel = (params?: UseResizePanelPrarams) => {
   const initContainerWidthRef = useRef(0)
   const initContainerHeightRef = useRef(0)
   const isResizingRef = useRef(false)
-  const [prevUserSelectStyle, setPrevUserSelectStyle] = useState(getComputedStyle(document.body).userSelect)
+  const [prevUserSelectStyle, setPrevUserSelectStyle] = useState(() => getComputedStyle(document.body).userSelect)
 
   const handleStartResize = useCallback((e: MouseEvent) => {
     initXRef.current = e.clientX

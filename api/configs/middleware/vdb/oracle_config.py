@@ -1,35 +1,44 @@
-from typing import Optional
-
-from pydantic import Field, PositiveInt
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
 class OracleConfig(BaseSettings):
     """
-    ORACLE configs
+    Configuration settings for Oracle database
     """
 
-    ORACLE_HOST: Optional[str] = Field(
-        description="ORACLE host",
+    ORACLE_USER: str | None = Field(
+        description="Username for authenticating with the Oracle database",
         default=None,
     )
 
-    ORACLE_PORT: Optional[PositiveInt] = Field(
-        description="ORACLE port",
-        default=1521,
-    )
-
-    ORACLE_USER: Optional[str] = Field(
-        description="ORACLE user",
+    ORACLE_PASSWORD: str | None = Field(
+        description="Password for authenticating with the Oracle database",
         default=None,
     )
 
-    ORACLE_PASSWORD: Optional[str] = Field(
-        description="ORACLE password",
+    ORACLE_DSN: str | None = Field(
+        description="Oracle database connection string. For traditional database, use format 'host:port/service_name'. "
+        "For autonomous database, use the service name from tnsnames.ora in the wallet",
         default=None,
     )
 
-    ORACLE_DATABASE: Optional[str] = Field(
-        description="ORACLE database",
+    ORACLE_CONFIG_DIR: str | None = Field(
+        description="Directory containing the tnsnames.ora configuration file. Only used in thin mode connection",
         default=None,
+    )
+
+    ORACLE_WALLET_LOCATION: str | None = Field(
+        description="Oracle wallet directory path containing the wallet files for secure connection",
+        default=None,
+    )
+
+    ORACLE_WALLET_PASSWORD: str | None = Field(
+        description="Password to decrypt the Oracle wallet, if it is encrypted",
+        default=None,
+    )
+
+    ORACLE_IS_AUTONOMOUS: bool = Field(
+        description="Flag indicating whether connecting to Oracle Autonomous Database",
+        default=False,
     )

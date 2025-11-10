@@ -17,6 +17,9 @@ language_timezone_mapping = {
     "hi-IN": "Asia/Kolkata",
     "tr-TR": "Europe/Istanbul",
     "fa-IR": "Asia/Tehran",
+    "sl-SI": "Europe/Ljubljana",
+    "th-TH": "Asia/Bangkok",
+    "id-ID": "Asia/Jakarta",
 }
 
 languages = list(language_timezone_mapping.keys())
@@ -26,5 +29,11 @@ def supported_language(lang):
     if lang in languages:
         return lang
 
-    error = "{lang} is not a valid language.".format(lang=lang)
+    error = f"{lang} is not a valid language."
     raise ValueError(error)
+
+
+def get_valid_language(lang: str | None) -> str:
+    if lang and lang in languages:
+        return lang
+    return languages[0]

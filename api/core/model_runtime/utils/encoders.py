@@ -8,7 +8,7 @@ from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6
 from pathlib import Path, PurePath
 from re import Pattern
 from types import GeneratorType
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Union
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -18,10 +18,9 @@ from pydantic_core import Url
 from pydantic_extra_types.color import Color
 
 
-def _model_dump(
-    model: BaseModel, mode: Literal["json", "python"] = "json", **kwargs: Any
-) -> Any:
+def _model_dump(model: BaseModel, mode: Literal["json", "python"] = "json", **kwargs: Any) -> Any:
     return model.model_dump(mode=mode, **kwargs)
+
 
 # Taken from Pydantic v1 as is
 def isoformat(o: Union[datetime.date, datetime.time]) -> str:
@@ -82,11 +81,9 @@ ENCODERS_BY_TYPE: dict[type[Any], Callable[[Any], Any]] = {
 
 
 def generate_encoders_by_class_tuples(
-    type_encoder_map: dict[Any, Callable[[Any], Any]]
+    type_encoder_map: dict[Any, Callable[[Any], Any]],
 ) -> dict[Callable[[Any], Any], tuple[Any, ...]]:
-    encoders_by_class_tuples: dict[Callable[[Any], Any], tuple[Any, ...]] = defaultdict(
-        tuple
-    )
+    encoders_by_class_tuples: dict[Callable[[Any], Any], tuple[Any, ...]] = defaultdict(tuple)
     for type_, encoder in type_encoder_map.items():
         encoders_by_class_tuples[encoder] += (type_,)
     return encoders_by_class_tuples
@@ -101,7 +98,7 @@ def jsonable_encoder(
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
     exclude_none: bool = False,
-    custom_encoder: Optional[dict[Any, Callable[[Any], Any]]] = None,
+    custom_encoder: dict[Any, Callable[[Any], Any]] | None = None,
     sqlalchemy_safe: bool = True,
 ) -> Any:
     custom_encoder = custom_encoder or {}
@@ -132,16 +129,18 @@ def jsonable_encoder(
             sqlalchemy_safe=sqlalchemy_safe,
         )
     if dataclasses.is_dataclass(obj):
-        obj_dict = dataclasses.asdict(obj)
-        return jsonable_encoder(
-            obj_dict,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            custom_encoder=custom_encoder,
-            sqlalchemy_safe=sqlalchemy_safe,
-        )
+        # Ensure obj is a dataclass instance, not a dataclass type
+        if not isinstance(obj, type):
+            obj_dict = dataclasses.asdict(obj)
+            return jsonable_encoder(
+                obj_dict,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                custom_encoder=custom_encoder,
+                sqlalchemy_safe=sqlalchemy_safe,
+            )
     if isinstance(obj, Enum):
         return obj.value
     if isinstance(obj, PurePath):
@@ -149,19 +148,12 @@ def jsonable_encoder(
     if isinstance(obj, str | int | float | type(None)):
         return obj
     if isinstance(obj, Decimal):
-        return format(obj, 'f')
+        return format(obj, "f")
     if isinstance(obj, dict):
         encoded_dict = {}
-        allowed_keys = set(obj.keys())
         for key, value in obj.items():
-            if (
-                (
-                    not sqlalchemy_safe
-                    or (not isinstance(key, str))
-                    or (not key.startswith("_sa"))
-                )
-                and (value is not None or not exclude_none)
-                and key in allowed_keys
+            if (not sqlalchemy_safe or (not isinstance(key, str)) or (not key.startswith("_sa"))) and (
+                value is not None or not exclude_none
             ):
                 encoded_key = jsonable_encoder(
                     key,
@@ -204,15 +196,15 @@ def jsonable_encoder(
             return encoder(obj)
 
     try:
-        data = dict(obj)
+        data = dict(obj)  # type: ignore
     except Exception as e:
         errors: list[Exception] = []
         errors.append(e)
         try:
-            data = vars(obj)
+            data = vars(obj)  # type: ignore
         except Exception as e:
             errors.append(e)
-            raise ValueError(errors) from e
+            raise ValueError(str(errors)) from e
     return jsonable_encoder(
         data,
         by_alias=by_alias,

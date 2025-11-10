@@ -2,7 +2,6 @@ const translation = {
   title: 'Тестування вибірки',
   desc: 'Тестування ефективності пошуку знань на основі наданого текстового запиту.',
   dateTimeFormat: 'DD/MM/YYYY HH:mm A',
-  recents: 'Останні',
   table: {
     header: {
       source: 'Джерело',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Тут немає результатів останніх запитів',
   viewChart: 'ПЕРЕГЛЯНУТИ ВЕКТОРНУ ДІАГРАМУ',
+  settingTitle: 'Налаштування отримання',
+  viewDetail: 'Переглянути деталі',
+  chunkDetail: 'Деталізація фрагмента',
+  hitChunks: 'Натисніть {{num}} на дочірні шматки',
+  open: 'Відкривати',
+  keyword: 'Ключові слова',
+  records: 'Записи',
 }
 
 export default translation

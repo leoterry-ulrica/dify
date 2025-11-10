@@ -2,7 +2,6 @@ const translation = {
   title: 'Testarea Recuperării',
   desc: 'Testați efectul de atingere al Cunoștințelor pe baza textului interogat dat.',
   dateTimeFormat: 'DD/MM/YYYY hh:mm A',
-  recents: 'Recente',
   table: {
     header: {
       source: 'Sursă',
@@ -23,6 +22,13 @@ const translation = {
   },
   noRecentTip: 'Nu există rezultate de interogare recente aici',
   viewChart: 'Vizualizați GRAFICUL VECTORIAL',
+  settingTitle: 'Setare de recuperare',
+  viewDetail: 'Vezi detalii',
+  keyword: 'Cuvinte cheie',
+  chunkDetail: 'Detalii bucăți',
+  open: 'Deschide',
+  hitChunks: 'Accesează {{num}} bucăți copil',
+  records: 'Înregistrări',
 }
 
 export default translation

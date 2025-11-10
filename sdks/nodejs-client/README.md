@@ -1,12 +1,15 @@
 # Dify Node.js SDK
+
 This is the Node.js SDK for the Dify API, which allows you to easily integrate Dify into your Node.js applications.
 
 ## Install
+
 ```bash
 npm install dify-client
 ```
 
 ## Usage
+
 After installing the SDK, you can use it in your project like this:
 
 ```js
@@ -18,7 +21,7 @@ const query = 'Please tell me a short story in 10 words or less.'
 const remote_url_files = [{
     type: 'image',
     transfer_method: 'remote_url',
-    url: 'your_url_addresss'
+    url: 'your_url_address'
 }]
 
 // Create a completion client
@@ -60,4 +63,5 @@ client.messageFeedback(messageId, rating, user)
 Replace 'your-api-key-here' with your actual Dify API key.Replace 'your-app-id-here' with your actual Dify APP ID.
 
 ## License
+
 This SDK is released under the MIT License.

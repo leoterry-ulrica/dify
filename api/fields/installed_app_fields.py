@@ -1,4 +1,4 @@
-from flask_restful import fields
+from flask_restx import fields
 
 from libs.helper import AppIconUrlField, TimestampField
 
@@ -10,6 +10,7 @@ app_fields = {
     "icon": fields.String,
     "icon_background": fields.String,
     "icon_url": AppIconUrlField,
+    "use_icon_as_answer_icon": fields.Boolean,
 }
 
 installed_app_fields = {
